@@ -1,0 +1,12 @@
+# Problem
+
+
+Two words are friends if they have a Levenshtein distance of 1. That is, you can add, remove, or substitute exactly one letter in word X to create word Y. A word’s social network consists of all of its friends, plus all of their friends, and all of their friends’ friends, and so on. Write a program to tell us how big the social network for the word “causes” is, using this word list.
+
+# To build 
+
+javac WordFriends.java
+
+# To run
+
+java -Xms1024m -Xmx1024m WordFriends
