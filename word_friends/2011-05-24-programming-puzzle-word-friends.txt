@@ -1,0 +1,61 @@
+--- 
+title: "Programming Puzzle: Word Friends"
+date: 24/05/2011
+
+<p>I found an interesting programming puzzle from <a href="http://www.causes.com/jobs#job1">Causes</a> while browsing around Craigslist job listings the other day. I like it for 3 reasons:</p>
+
+<ol>
+  <li>The problem is stated simply.</li>
+  <li>The solution requires an execution that balances algorithmic complexity, code optimization, and a bit of cleverness.</li>
+  <li>The solution takes a long time to compute and opens up the possibility for distributed computation (another interesting problem).</li>
+</ol>
+
+<h2>The Problem</h2>
+
+<p>Two words are friends if they have a <a href="http://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein distance</a> of 1. That is, you can add, remove, or substitute exactly one letter in word X to create word Y. A word’s social network consists of all of its friends, plus all of their friends, and all of their friends’ friends, and so on. Write a program to tell us how big the social network for the word “causes” is, using <a href="https://github.com/causes/puzzles/raw/master/word_friends/word.list">this word list</a>.</p>
+
+<h2>My Approach</h2>
+
+<p>I had originally written my solution in Ruby, but it was too slow so I ported it to Java. You can view the full source <a href="https://github.com/hwong/puzzles/blob/master/word_friends/WordFriends.java">here</a>.</p>
+
+<h3>Psuedocode</h3>
+
+<pre class="code">
+queue = ["causes"]
+word_friends_list = []
+while queue is not empty
+  word = queue.pop
+  for word_from_word_list in word_list
+    if word and word_from_word_list are word friends
+      if word_from_word_list is not in word_friends_list
+        queue.push word_from_word_list
+        add word_from_word_list to word_friends_list
+        remove word_from_word_list from word_list
+</pre>
+
+<h3>Optimizations in Determining Whether Two Words are Word Friends</h3>
+
+<p>The problem states: "two words are friends if they have a Levenshtein distance of 1". You can calculate the Levenshtein distance between 2 words to check if they are word friends every time, but that is very expensive -- O(n*m) where n and m are the lengths of the 2 strings respectively, and there are 264,061 words in the word list. However, there are a couple of hints for the problem in the next line: "you can add, remove, or substitute exactly one letter in word X to create word Y". This alludes to the fact that there are 3 cases, allowing us to consider some optimizations. Ultimately, we never need to use <a href="http://en.wikipedia.org/wiki/Levenshtein_distance#Computing_Levenshtein_distance">the algorithm to calculate the Levenshtein distance between two words</a> ever.</p>
+
+<h4>Case 1: The length of the two words differs by two or more</h4>
+
+<p>Since we know that two words are word friends by the property of adding, removing, or substituting exactly one letter, we instantly know that two words cannot be word friends if their lengths differ by two or more.</p>
+
+<h4>Case 2: The length of the two words differs by exactly one</h4>
+
+<p>In this case, we know that a letter must be added or removed to satisfy the condition of being word friends. It is much faster to consider if a letter was removed to satisfy the condition, as there are only n possibilities to check where n is the length of the longer word. To do so, we need to consider the set of words given when one character is removed at each position from a word. For example, for the word "causes", we have the following set:</p>
+
+<pre class="code">
+one_character_removed_set("causes") = ["auses", "cuses", "cases", "caues",
+                                       "causs", "cause"]
+</pre>
+
+<p>Now, if we want to see if "cases" and "causes" are word friends, we can simply check if "cases" is in one_character_removed_set("causes"). In general, we just need to check if the shorter word is in the set of words given when one character is removed at each position from the longer word.</p>
+
+<h4>Case 3: The length of the two words are equal</h4>
+
+<p>The <a href="http://en.wikipedia.org/wiki/Hamming_distance">Hamming distance</a> between two words of equal length tells us how many letters the two words differ. We can quickly calculate the Hamming distance of two words in O(n) where n is the length of the words. If the Hamming distance between the two words is equal to 1, then we know they differ by exactly one letter and that they are word friends.</p>
+
+<h2>Results</h2>
+
+<p>My approach still takes a while to run, but completed in what I consider to be an acceptable amount of time to allocate to the problem (just shy of an hour on an Intel i7 920). There are still many other optimizations (multi-threading or even clustered computing) that can be made, some of which I may tackle later. For now, it will do. I believe it finds the right answer: "causes" has a word social network of 78,481 word friends.</p>
